@@ -1,21 +1,21 @@
 #include <Servo.h>
 
 // LED подсветка
-#define LED_PIN 13;
+#define LED_PIN 13
 
 // Грузовой отсек
-#define SERVO_CARGO_L_PIN 2;
-#define SERVO_CARGO_R_PIN 3;
+#define SERVO_CARGO_L_PIN 2
+#define SERVO_CARGO_R_PIN 3
 
 // Руль высоты
-#define SERVO_ELEVATOR_PIN 4;
+#define SERVO_ELEVATOR_PIN 4
 
 // Руль поворота
-#define SERVO_CHATTER_PIN 5;
+#define SERVO_CHATTER_PIN 5
 
 // Крылья
-#define SERVO_WING_L_PIN 6;
-#define SERVO_WING_R_PIN 7;
+#define SERVO_WING_L_PIN 6
+#define SERVO_WING_R_PIN 7
 
 // Сервоприводы
 Servo servoCargoL;
@@ -24,6 +24,13 @@ Servo servoElevator;
 Servo servoChatter;
 Servo servoWingL;
 Servo servoWingR;
+
+// Состояние готовности к реакции на управление
+boolean stateReady = false;
+
+// Количество шагов тестирования и задержка положения
+int testCount = 10;
+int testDelay = 1000;
 
 // Границы движения сервоприводов
 int servoValueCargoL_closed = 10;       // Грузовой отсек закрыт, левая серва
@@ -62,12 +69,46 @@ void setup() {
   delay(5000);
   
   // Тестирование системы
-  
+  tests();
+
+  // Повторная установка стартовых положений сервоприводов
+  servosToStartPositions();
 }
 
 // Итерация
 void loop() {
-  
+  if (stateReady) {
+    /* TODO */
+  }
+}
+
+// Тестирование
+void tests() {
+  for (int i = 0; i < testCount; i++) {
+    cargoHoldOpen();
+    elevatorToTurnUp();
+    chatterToTurnLeft();
+    wingsToTurnLeft();
+    ledLightTurnOff();
+    delay(testDelay / 2);
+    cargoHoldClose();
+    elevatorToTurnDown();
+    chatterToTurnRight();
+    wingsToTurnRight();
+    ledLightTurnOn();
+    delay(testDelay / 2);
+  }
+  Serial.println("Tests completed");
+  for (int i = 0; i <= 20; i++) {
+    if (!((i + 1) % 2)) {
+      ledLightTurnOff();
+    } else {
+      ledLightTurnOn();
+    }
+    delay(200);
+  }
+  stateReady = true;
+  Serial.println("Ready to fly");
 }
 
 // Стартовое состояние
