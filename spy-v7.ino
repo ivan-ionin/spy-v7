@@ -70,11 +70,13 @@ void loop() {
   
 }
 
+// Стартовое состояние
 void servosToStartPositions() {
   cargoHoldClose();
   elevatorToNormalPosition();
   chatterToNormalPosition();
   wingsToNormalPosition();
+  ledLightTurnOn();
 }
 
 // Открыть грузовой отсек
@@ -146,4 +148,14 @@ void wingsToTurnRight() {
   servoWingL.write(servoValueWingLZero - servoValueWingsDelta);
   servoWingR.write(servoValueWingRZero + servoValueWingsDelta);
   Serial.println("Wings to turn right");
+}
+
+void ledLightTurnOn() {
+  digitalWrite(LED_PIN, HIGH);
+  Serial.println("Led light turn on");
+}
+
+void ledLightTurnOff() {
+  digitalWrite(LED_PIN, LOW);
+  Serial.println("Led light turn off");
 }
