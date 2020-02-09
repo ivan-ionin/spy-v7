@@ -25,6 +25,9 @@ Servo servoChatter;
 Servo servoWingL;
 Servo servoWingR;
 
+// Отладка [!!!!!] снять флаг при боевой прошивке
+boolean stateDebug = true;
+
 // Состояние готовности к реакции на управление
 boolean stateReady = false;
 
@@ -49,7 +52,9 @@ int servoValueWingsDelta = 45;          // Крылья, дельта смеще
 void setup() {
   
   // Инициализация порта
-  Serial.begin(9600);
+  if (stateDebug) {
+    Serial.begin(9600);
+  }
   
   // Инициализация led-подсветки
   pinMode(LED_PIN, OUTPUT);
@@ -82,6 +87,13 @@ void loop() {
   }
 }
 
+// Отладка
+void debug(String str) {
+  if (stateDebug) {
+    Serial.println(str);
+  }
+}
+
 // Тестирование
 void tests() {
   for (int i = 0; i < testCount; i++) {
@@ -98,7 +110,7 @@ void tests() {
     ledLightTurnOn();
     delay(testDelay / 2);
   }
-  Serial.println("Tests completed");
+  debug("Tests completed");
   for (int i = 0; i <= 20; i++) {
     if (!((i + 1) % 2)) {
       ledLightTurnOff();
@@ -108,7 +120,7 @@ void tests() {
     delay(200);
   }
   stateReady = true;
-  Serial.println("Ready to fly");
+  debug("Ready to fly");
 }
 
 // Стартовое состояние
@@ -124,79 +136,79 @@ void servosToStartPositions() {
 void cargoHoldOpen() {
   servoCargoL.write(servoValueCargoL_opened);
   servoCargoR.write(servoValueCargoR_opened);
-  Serial.println("Cargo hold open");
+  debug("Cargo hold open");
 }
 
 // Закрыть грузовой отсек
 void cargoHoldClose() {
   servoCargoL.write(servoValueCargoL_closed);
   servoCargoR.write(servoValueCargoR_closed);
-  Serial.println("Cargo hold close");
+  debug("Cargo hold close");
 }
 
 // Руль высоты в нулевую позицию
 void elevatorToNormalPosition() {
   servoElevator.write(servoValueElevatorZero);
-  Serial.println("Elevator to normal position");
+  debug("Elevator to normal position");
 }
 
 // Руль высоты, поворот вверх
 void elevatorToTurnUp() {
   servoElevator.write(servoValueElevatorZero + servoValueElevatorDelta);
-  Serial.println("Elevator to turn up");
+  debug("Elevator to turn up");
 }
 
 // Руль высоты, поворот вниз
 void elevatorToTurnDown() {
   servoElevator.write(servoValueElevatorZero - servoValueElevatorDelta);
-  Serial.println("Elevator to turn up");
+  debug("Elevator to turn up");
 }
 
 // Руль рысканья в нулевую позицию
 void chatterToNormalPosition() {
   servoChatter.write(servoValueChatterZero);
-  Serial.println("Chatter to normal position");
+  debug("Chatter to normal position");
 }
 
 // Руль рысканья, поворот влево
 void chatterToTurnLeft() {
   servoChatter.write(servoValueChatterZero + servoValueChatterDelta);
-  Serial.println("Chatter to turn left");
+  debug("Chatter to turn left");
 }
 
 // Руль рысканья, поворот вправо
 void chatterToTurnRight() {
   servoChatter.write(servoValueChatterZero - servoValueChatterDelta);
-  Serial.println("Chatter to turn right");
+  debug("Chatter to turn right");
 }
 
 // Крылья в нулевую позицию
 void wingsToNormalPosition() {
   servoWingL.write(servoValueWingLZero);
   servoWingR.write(servoValueWingRZero);
-  Serial.println("Wings to normal position");
+  debug("Wings to normal position");
 }
 
 // Крылья для поворота влево
 void wingsToTurnLeft() {
   servoWingL.write(servoValueWingLZero + servoValueWingsDelta);
   servoWingR.write(servoValueWingRZero - servoValueWingsDelta);
-  Serial.println("Wings to turn left");
+  debug("Wings to turn left");
 }
 
 // Крылья для поворота вправо
 void wingsToTurnRight() {
   servoWingL.write(servoValueWingLZero - servoValueWingsDelta);
   servoWingR.write(servoValueWingRZero + servoValueWingsDelta);
-  Serial.println("Wings to turn right");
+  debug("Wings to turn right");
 }
 
 void ledLightTurnOn() {
   digitalWrite(LED_PIN, HIGH);
-  Serial.println("Led light turn on");
+  debug("Led light turn on");
 }
 
 void ledLightTurnOff() {
   digitalWrite(LED_PIN, LOW);
-  Serial.println("Led light turn off");
+  debug("Led light turn off");
 }
