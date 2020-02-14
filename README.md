@@ -9,7 +9,8 @@
 
 ## Исходники
 
-В прошивках используются библиотеки nRF24L01.h и RF24.h, а так же в качестве примеров были взяты части кода Алекса Гайвера: [Алекса Гайвера](https://github.com/AlexGyver/nRF24L01)
+В прошивках используются библиотеки nRF24L01.h и RF24.h, а так же в качестве примеров были взяты части кода [Алекса Гайвера](https://github.com/AlexGyver/nRF24L01).
 
 ## Схема
 
+[<img src="https://github.com/ivan-ionin/spy-v7/blob/master/scheme.jpg" alt="Eva Design System" style="max-width:100%" />]
