@@ -1,4 +1,37 @@
+// Библиотеки
+#include <SPI.h>
 #include <Servo.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+#include "printf.h"
+
+// Определение роли
+// transmitter / receiver
+#define ROLE "receiver"
+
+// Определение режима работы
+// test / real
+#define MODE "test"
+
+// Определение режима тестирования кода
+// true / false
+#define DEBUG true
+
+// Сигнальные трубы
+// по ним приемник и передатчик
+// будут общаться при включении в момент настройки и поиска канала связи
+// должны быть указаны идентично на передатчике и приемнике
+#define TX_PIPE 0;
+#define RX_PIPE 1;
+
+// Трубы
+// определяются автоматически
+// должны получить обратные значения на приемнике и передатчике
+int t_pipe; // Сюда данный модуль будет передавать
+int r_pipe; // Отсюда данный модуль будет читать
+
+// Пины подключения NRF24L01+
+RF24 radio(9, 10);
 
 // LED подсветка
 #define LED_PIN 13
@@ -25,11 +58,8 @@ Servo servoChatter;
 Servo servoWingL;
 Servo servoWingR;
 
-// Отладка [!!!!!] снять флаг при боевой прошивке
-boolean stateDebug = true;
-
 // Состояние готовности к реакции на управление
-boolean stateReady = false;
+boolean readyToFly = false;
 
 // Количество шагов тестирования и задержка положения
 int testCount = 10;
@@ -52,7 +82,7 @@ int servoValueWingsDelta = 45;          // Крылья, дельта смеще
 void setup() {
   
   // Инициализация порта
-  if (stateDebug) {
+  if (DEBUG) {
     Serial.begin(9600);
   }
   
@@ -89,7 +119,7 @@ void loop() {
 
 // Отладка
 void debug(String str) {
-  if (stateDebug) {
+  if (DEBUG) {
     Serial.println(str);
   }
 }
