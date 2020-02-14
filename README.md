@@ -13,4 +13,4 @@
 
 ## Схема
 
-[<img src="https://github.com/ivan-ionin/spy-v7/blob/master/scheme.jpg" alt="Eva Design System" style="max-width:100%" />]
+<img src="https://github.com/ivan-ionin/spy-v7/blob/master/scheme.jpg" alt="Eva Design System" style="max-width:100%" />
