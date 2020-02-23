@@ -34,49 +34,63 @@ int r_pipe; // Отсюда данный модуль будет читать
 RF24 radio(9, 10);
 
 // LED подсветка
-#define LED_PIN 13
+#define LED_PIN 2
 
 // Грузовой отсек
-#define SERVO_CARGO_L_PIN 2
+#define SERVO_CARGO_L_PIN 4
 #define SERVO_CARGO_R_PIN 3
 
 // Руль высоты
-#define SERVO_ELEVATOR_PIN 4
+#define SERVO_ELEVATOR_PIN 8
 
 // Руль поворота
-#define SERVO_CHATTER_PIN 5
+#define SERVO_RUDDER_PIN 7
 
 // Крылья
-#define SERVO_WING_L_PIN 6
-#define SERVO_WING_R_PIN 7
+#define SERVO_AILERON_L_PIN 6
+#define SERVO_AILERON_R_PIN 5
 
 // Сервоприводы
 Servo servoCargoL;
 Servo servoCargoR;
 Servo servoElevator;
-Servo servoChatter;
-Servo servoWingL;
-Servo servoWingR;
+Servo servoRudder;
+Servo servoAileronL;
+Servo servoAileronR;
 
 // Состояние готовности к реакции на управление
 boolean readyToFly = false;
 
 // Количество шагов тестирования и задержка положения
-int testCount = 10;
-int testDelay = 1000;
+int testCount = 100;
+int testDelay = 2000;
+
+// Активация при тестировании
+boolean ledTest = true;
+boolean cargoTest = true;
+boolean elevatorTest = true;
+boolean rudderTest = true;
+boolean aileronsTest = false;
+
 
 // Границы движения сервоприводов
-int servoValueCargoL_closed = 10;       // Грузовой отсек закрыт, левая серва
-int servoValueCargoL_opened = 170;      // Грузовой отсек открыт, левая серва
+
+int servoValueCargoL_closed = 170;      // Грузовой отсек закрыт, левая серва
+int servoValueCargoL_opened = 10;       // Грузовой отсек открыт, левая серва
 int servoValueCargoR_closed = 10;       // Грузовой отсек закрыт, правая серва
 int servoValueCargoR_opened = 170;      // Грузовой отсек открыт, правая серва
-int servoValueElevatorZero = 0;         // Руль высоты, нулевая позиция
-int servoValueElevatorDelta = 45;       // Руль высоты, дельта смещения
-int servoValueChatterZero = 0;          // Руль рысканья, нулевая позиция
-int servoValueChatterDelta = 45;        // Руль рысканья, дельта смещения
-int servoValueWingLZero = 0;            // Левое крыло, нулевая позиция
-int servoValueWingRZero = 0;            // Правое крыло, нулевая позиция
-int servoValueWingsDelta = 45;          // Крылья, дельта смещения
+
+int servoValueElevatorZero = 90;        // Руль высоты, нулевая позиция
+int servoValueElevatorToTurnUp = 0;     // Руль высоты, для полета вверх
+int servoValueElevatorToTurnDown = 170;  // Руль высоты, для полета вниз
+
+int servoValueRudderZero = 80;          // Руль поворота, нулевая позиция
+int servoValueRudderToTurnLeft = 60;    // Руль поворота, для полета налево
+int servoValueRudderToTurnRight = 110;  // Руль поворота, для полета направо
+
+int servoValueAileronLZero = 90;        // Левое крыло, нулевая позиция
+int servoValueAileronRZero = 90;        // Правое крыло, нулевая позиция
+int servoValueAileronsDelta = 35;       // Крылья, дельта смещения
 
 // Инициализация
 void setup() {
@@ -93,9 +107,9 @@ void setup() {
   servoCargoL.attach(SERVO_CARGO_L_PIN);
   servoCargoR.attach(SERVO_CARGO_R_PIN);
   servoElevator.attach(SERVO_ELEVATOR_PIN);
-  servoChatter.attach(SERVO_CHATTER_PIN);
-  servoWingL.attach(SERVO_WING_L_PIN);
-  servoWingR.attach(SERVO_WING_R_PIN);
+  servoRudder.attach(SERVO_RUDDER_PIN);
+  servoAileronL.attach(SERVO_AILERON_L_PIN);
+  servoAileronR.attach(SERVO_AILERON_R_PIN);
   
   // Установка стартовых положений сервоприводов
   servosToStartPositions();
@@ -104,15 +118,21 @@ void setup() {
   delay(5000);
   
   // Тестирование системы
-  tests();
+  if (MODE == "test") {
+    debug("Test mode");
+    tests();
+    // Повторная установка стартовых положений сервоприводов
+    servosToStartPositions();
+  }
 
-  // Повторная установка стартовых положений сервоприводов
-  servosToStartPositions();
+  // Готовность к полету
+  readyToFly = true;
+  debug("Ready to fly");
 }
 
 // Итерация
 void loop() {
-  if (stateReady) {
+  if (readyToFly) {
     /* TODO */
   }
 }
@@ -127,21 +147,22 @@ void debug(String str) {
 // Тестирование
 void tests() {
   for (int i = 0; i < testCount; i++) {
-    cargoHoldOpen();
-    elevatorToTurnUp();
-    chatterToTurnLeft();
-    wingsToTurnLeft();
-    ledLightTurnOff();
+    debug(String(i + 1));
+    if (cargoTest) cargoHoldOpen();
+    if (elevatorTest) elevatorToTurnUp();
+    if (rudderTest) rudderToTurnLeft();
+    if (aileronsTest) aileronsToTurnLeft();
+    if (ledTest) ledLightTurnOff();
     delay(testDelay / 2);
-    cargoHoldClose();
-    elevatorToTurnDown();
-    chatterToTurnRight();
-    wingsToTurnRight();
-    ledLightTurnOn();
+    if (cargoTest) cargoHoldClose();
+    if (elevatorTest) elevatorToTurnDown();
+    if (rudderTest) rudderToTurnRight();
+    if (aileronsTest) aileronsToTurnRight();
+    if (ledTest) ledLightTurnOn();
     delay(testDelay / 2);
   }
   debug("Tests completed");
-  for (int i = 0; i <= 20; i++) {
+  for (int i = 0; i <= 100; i++) {
     if (!((i + 1) % 2)) {
       ledLightTurnOff();
     } else {
@@ -149,16 +170,14 @@ void tests() {
     }
     delay(200);
   }
-  stateReady = true;
-  debug("Ready to fly");
 }
 
 // Стартовое состояние
 void servosToStartPositions() {
   cargoHoldClose();
   elevatorToNormalPosition();
-  chatterToNormalPosition();
-  wingsToNormalPosition();
+  rudderToNormalPosition();
+  aileronsToNormalPosition();
   ledLightTurnOn();
 }
 
@@ -184,53 +203,68 @@ void elevatorToNormalPosition() {
 
 // Руль высоты, поворот вверх
 void elevatorToTurnUp() {
-  servoElevator.write(servoValueElevatorZero + servoValueElevatorDelta);
+  servoElevator.write(servoValueElevatorToTurnUp);
   debug("Elevator to turn up");
 }
 
 // Руль высоты, поворот вниз
 void elevatorToTurnDown() {
-  servoElevator.write(servoValueElevatorZero - servoValueElevatorDelta);
+  servoElevator.write(servoValueElevatorToTurnDown);
   debug("Elevator to turn up");
 }
 
 // Руль рысканья в нулевую позицию
-void chatterToNormalPosition() {
-  servoChatter.write(servoValueChatterZero);
-  debug("Chatter to normal position");
+void rudderToNormalPosition() {
+  servoRudder.write(servoValueRudderZero);
+  debug("Rudder to normal position");
 }
 
 // Руль рысканья, поворот влево
-void chatterToTurnLeft() {
-  servoChatter.write(servoValueChatterZero + servoValueChatterDelta);
-  debug("Chatter to turn left");
+void rudderToTurnLeft() {
+  servoRudder.write(servoValueRudderToTurnLeft);
+  debug("Rudder to turn left");
 }
 
 // Руль рысканья, поворот вправо
-void chatterToTurnRight() {
-  servoChatter.write(servoValueChatterZero - servoValueChatterDelta);
-  debug("Chatter to turn right");
+void rudderToTurnRight() {
+  servoRudder.write(servoValueRudderToTurnRight);
+  debug("Rudder to turn right");
 }
 
 // Крылья в нулевую позицию
-void wingsToNormalPosition() {
-  servoWingL.write(servoValueWingLZero);
-  servoWingR.write(servoValueWingRZero);
-  debug("Wings to normal position");
+void aileronsToNormalPosition() {
+  servoAileronL.write(servoValueAileronLZero);
+  servoAileronR.write(servoValueAileronRZero);
+  debug("Ailerons to normal position");
 }
 
 // Крылья для поворота влево
-void wingsToTurnLeft() {
-  servoWingL.write(servoValueWingLZero + servoValueWingsDelta);
-  servoWingR.write(servoValueWingRZero - servoValueWingsDelta);
-  debug("Wings to turn left");
+void aileronsToTurnLeft() {
+  servoAileronL.write(servoValueAileronLZero + servoValueAileronsDelta);
+  servoAileronR.write(servoValueAileronRZero - servoValueAileronsDelta);
+  debug("Ailerons to turn left");
 }
 
 // Крылья для поворота вправо
-void wingsToTurnRight() {
-  servoWingL.write(servoValueWingLZero - servoValueWingsDelta);
-  servoWingR.write(servoValueWingRZero + servoValueWingsDelta);
-  debug("Wings to turn right");
+void aileronsToTurnRight() {
+  servoAileronL.write(servoValueAileronLZero - servoValueAileronsDelta);
+  servoAileronR.write(servoValueAileronRZero + servoValueAileronsDelta);
+  debug("Ailerons to turn right");
+}
+
+
+// Крылья для взлета
+void aileronsToTurnUp() {
+  servoAileronL.write(servoValueAileronLZero - servoValueAileronsDelta);
+  servoAileronR.write(servoValueAileronRZero - servoValueAileronsDelta);
+  debug("Ailerons to turn right");
+}
+
+// Крылья для посадки
+void aileronsToTurnDown() {
+  servoAileronL.write(servoValueAileronLZero + servoValueAileronsDelta);
+  servoAileronR.write(servoValueAileronRZero + servoValueAileronsDelta);
+  debug("Aileronss to turn right");
 }
 
 void ledLightTurnOn() {
